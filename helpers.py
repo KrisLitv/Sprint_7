@@ -1,17 +1,18 @@
 import requests
 import random
 import string
-
+import allure
 from faker import Faker
 
-from urls import COURIER_URL
+from urls import COURIER_URL, COURIER_DELETE_URL
 
-
+@allure.step('Генерируем данные для регистрации курьера')
 def generate_random_string(length):
     letters = string.ascii_lowercase
     random_string = ''.join(random.choice(letters) for i in range(length))
     return random_string
 
+@allure.step('Создаем рандомные данные для аторизации')
 def get_register_payload():
 
     login = generate_random_string(10)
@@ -21,16 +22,18 @@ def get_register_payload():
     payload = {
         "login": login,
         "password": password,
-        "firstName": first_name
+        "first_name": first_name
     }
 
     return payload
 
+@allure.step('Создаем нового курьера для авторизации')
 def register_new_courier_and_return_login_password(payload):
 
     login_pass = []
 
     response = requests.post(COURIER_URL, data=payload)
+
 
     if response.status_code == 201:
         login_pass.append(payload['login'])
@@ -39,7 +42,7 @@ def register_new_courier_and_return_login_password(payload):
 
     return login_pass
 
-
+@allure.step('Создаем словарь со случайно сгенерированными данными')
 def build_dictionary():
     faker = Faker()
     payload = {
@@ -56,3 +59,12 @@ def build_dictionary():
         ]
     }
     return payload
+
+
+@allure.step('Удаляем курьера')
+def delete_courier(courier_id):
+    url = f"{COURIER_DELETE_URL}/{courier_id}"
+    response = requests.delete(url)
+
+    assert response.status_code == 200, f"Failed to delete courier with ID {courier_id}. Status code: {response.status_code}"
+

@@ -18,8 +18,12 @@ class TestCreateCourier:
         }
 
         # отправляем запрос на регистрацию курьера и сохраняем ответ в переменную response
-        response = requests.post(COURIER_URL, data=payload)
+        response = requests.post(COURIER_URL, json=payload)
         assert response.status_code == 201
+        response_data = response.json()
+
+        assert 'ok' in response_data and response_data['ok'] is True, "Ответ не содержит ключ 'ok' с True значением"
+
 
     @allure.title('Проверка тела API создания курьера')
     def test_create_body(self):
@@ -31,8 +35,11 @@ class TestCreateCourier:
             "firstName": first_name
         }
 
-        response = requests.post(COURIER_URL, data=payload)
-        assert response.json()['ok']
+        response = requests.post(COURIER_URL, json=payload)
+        response_data = response.json()
+        assert response_data.get('ok'), "Ошибка: 'ok' отсутствует в ответе"
+
+
 
     @allure.title('Проверка кода API на создания дублирующегося курьера')
     def test_create_duplicate_code(self):
@@ -45,8 +52,8 @@ class TestCreateCourier:
             "firstName": first_name
         }
 
-        response = requests.post(COURIER_URL, data=payload)
-        assert response.status_code == 409
+        response = requests.post(COURIER_URL, json=payload)
+        assert response.status_code == 409, f"Ошибка: ожидался код 409, получен {response.status_code}"
 
     @allure.title('Проверка тела API создания дублирующегося курьера')
     def test_create_duplicate_body(self):
@@ -59,8 +66,10 @@ class TestCreateCourier:
             "firstName": first_name
         }
 
-        response = requests.post(COURIER_URL, data=payload)
-        assert response.json()['message'] == 'Этот логин уже используется. Попробуйте другой.'
+        response = requests.post(COURIER_URL, json=payload)
+        response_data = response.json()
+        expected_message = 'Этот логин уже используется. Попробуйте другой.'
+        assert response_data.get('message') == expected_message, f"Ошибка: ожидалось сообщение '{expected_message}', получено {response_data.get('message')}"
 
     @allure.title('Проверка кода API на обязательные поля при создании курьера')
     def test_create_required_fields_code(self):
@@ -70,8 +79,8 @@ class TestCreateCourier:
             "login": login
         }
 
-        response = requests.post(COURIER_URL, data=payload)
-        assert response.status_code == 400
+        response = requests.post(COURIER_URL, json=payload)
+        assert response.status_code == 400, f"Ошибка: ожидался код 400, получен {response.status_code}"
 
     @allure.title('Проверка тела API на обязательные поля при создании курьера')
     def test_create_required_fields_body(self):
@@ -81,5 +90,7 @@ class TestCreateCourier:
             "login": login
         }
 
-        response = requests.post(COURIER_URL, data=payload)
-        assert response.json()['message'] == 'Недостаточно данных для создания учетной записи'
+        response = requests.post(COURIER_URL, json=payload)
+        response_data = response.json()
+        expected_message = 'Недостаточно данных для создания учетной записи'
+        assert response_data.get('message') == expected_message, f"Ошибка: ожидалось сообщение '{expected_message}', получено {response_data.get('message')}"

@@ -15,12 +15,13 @@ class TestLogin:
         payload = build_dictionary()
         payload['color'] = color
         response = requests.post(ORDER_URL, data=payload)
-        assert response.status_code == 201
-        # {'code': 500, 'message': 'values.map is not a function'}
+        assert response.status_code == 201 # {'code': 500, 'message': 'values.map is not a function'}
+        assert 'id' in response.json()  # Проверяем, что в ответе есть поле 'id'
 
     @allure.title('Проверка ответа API на получение id после авторизации')
     def test_success_create_order_track_in_body(self):
         payload = build_dictionary()
         payload['color'] = []
         response = requests.post(ORDER_URL, data=payload)
+        assert response.status_code == 201
         assert response.json().get('track')
